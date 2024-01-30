@@ -5,7 +5,7 @@ from scipy.stats import gaussian_kde
 
 import plotly.express as px
 
-
+ 
 class player:
     def __init__(self, first_name, second_name, path_year, path_year_gw): #TODO expand this to allow for multiple years of data
         self.first_name = first_name
