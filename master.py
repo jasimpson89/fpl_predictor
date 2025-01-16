@@ -3,6 +3,10 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 import plotting.plot_players_pdf as plot_players_pdf
 import git
+import dash
+from dash import dcc
+from dash import html
+from dash.dependencies import Input, Output
 import analysis.form_predictor as form_predictor
 def main():
     # g = git.cmd.Git('/data_fpl')
@@ -25,10 +29,10 @@ def main():
     path_2023_fixtures = "data_fpl/data/2023-24/fixtures.csv"
 
     # TODO make a JSON file to import player names and clubs
-    player_first_names = ["Mohamed", "Erling"]
-    player_second_names = ["Salah", "Haaland"]
+    player_first_names = ["Mohamed", "Erling", "Cole"]
+    player_second_names = ["Salah", "Haaland", "Palmer"]
 
-    colors = ["red", "blue"]
+    colors = ["red", "blue", "green"]
 
     players = {} # dictionary of players
     # fig = make_subplots(rows=1, cols=2, start_cell="top-left")
@@ -42,16 +46,43 @@ def main():
         players[player_.name] = player_
 
         print(player_.name)
-        print(player_.df_player["rolling_form"])
+        # print(player_.df_player["rolling_form"])
 
         # plot_players_pdf.plot(player_, fig_form, color=color)
 
         # form_predictor.test_bernoulli_predictor(player_.df_player, player_.name)
 
-    
+    # for player in players.values():
+    #     # fig_line = px.line(player.df_player, x="GW", y=["expected_goals", "goals_scored"], title=f"{player.name} - Expected Goals vs Goals Scored", labels={"value": "Goals", "variable": "Metric"})
+    #     # fig_diff = px.line(player.df_player, x="GW", y="percentage_difference", title=f"{player.name} - Percentage Difference between Expected Goals and Goals Scored", labels={"percentage_difference": "Percentage Difference"})
+
+    app = dash.Dash(__name__)
+
+    app.layout = html.Div([
+        html.H1("FPL Player Analysis"),
+        dcc.Tabs(id="tabs", children=[
+        dcc.Tab(label=player.name, children=[
+            html.Div([
+            dcc.Graph(
+                id=f"{player.name}_expected_vs_scored",
+                figure=px.line(player.df_player, x="GW", y=["expected_goals", "goals_scored"], title=f"{player.name} - Expected Goals vs Goals Scored", labels={"value": "Goals", "variable": "Metric"})
+            ),
+            dcc.Graph(
+                id=f"{player.name}_percentage_difference",
+                figure=px.line(player.df_player, x="GW", y="xg_percentage_difference", title=f"{player.name} - Percentage Difference between Expected Goals and Goals Scored", labels={"percentage_difference": "Percentage Difference"})
+            )
+            ])
+        ]) for player in players.values()
+        ])
+    ])
+    if __name__ == '__main__':
+        app.run_server(debug=True)
+
+
+        # fig.show()
 
     # fig_pdf.show()
-    fig_form.show()
+    # fig_form.show()
 
 main()
 print('END')

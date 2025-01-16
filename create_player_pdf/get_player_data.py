@@ -42,6 +42,10 @@ class player:
         self.df_player_fixtures = self.get_fixture_data(fixture_path)
 
 
+        # Analysis required, but doesen't need a function 
+        self.df_player["xg_percentage_difference"] = ((self.df_player["goals_scored"] - self.df_player["expected_goals"]))
+
+
     def calc_player_form(self):
         # calculate the form of a player, but as rolling average from df_player
         avg = self.df_player['total_points'].rolling(window=5, min_periods=5).mean()
@@ -95,16 +99,16 @@ class player:
         merged_df = merged_df.loc[:, ~merged_df.columns.duplicated()]
 
         # sort out fixture difficulty rating working out whether the fixture was at home or away for the player
-        merged_df.loc[merged_df['at_home'] == True, 'fdr'] = merged_df['team_h_difficulty']
-        merged_df.loc[merged_df['at_home'] == False, 'fdr'] = merged_df['team_a_difficulty']
+        merged_df.loc[merged_df['was_home'] == True, 'fdr'] = merged_df['team_h_difficulty']
+        merged_df.loc[merged_df['was_home'] == False, 'fdr'] = merged_df['team_a_difficulty']
 
         return merged_df
 
 
 
-def make_player_obj(player_first_name,player_second_name, path_year, path_year_gw, path_player_raw):
+def make_player_obj(player_first_name,player_second_name, path_year, path_year_gw, path_player_raw, path_fixtures):
 
 
-    player_ = player(player_first_name, player_second_name, path_year, path_year_gw, path_player_raw)
+    player_ = player(player_first_name, player_second_name, path_year, path_year_gw, path_player_raw, path_fixtures)
     # fig = plot_pdf.plot(player_)
     return player_
