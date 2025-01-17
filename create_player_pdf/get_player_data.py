@@ -92,15 +92,28 @@ class player:
         # get the fixture data for the player
         fixtures_df = pd.read_csv(fixture_path)
         df_player = self.df_player
-        # Merge player data with fixture data based on kickoff_time and team
-        merged_df = pd.merge(df_player, fixtures_df, how='left', left_on=['kickoff_time', 'opponent_team'], right_on=['kickoff_time', 'team_a'])
 
-        # Drop duplicate columns after merge
-        merged_df = merged_df.loc[:, ~merged_df.columns.duplicated()]
+        ## For some reason we had to use was_home filter, so that the data from fixtures_df is merged correctly and weren't NaNs I am not really sure why 
+        # Merge when was_home is True
+        home_merge = pd.merge(df_player[df_player['was_home'] == True], fixtures_df, how='left', left_on=['kickoff_time', 'opponent_team'], right_on=['kickoff_time', 'team_a'])
 
-        # sort out fixture difficulty rating working out whether the fixture was at home or away for the player
-        merged_df.loc[merged_df['was_home'] == True, 'fdr'] = merged_df['team_h_difficulty']
-        merged_df.loc[merged_df['was_home'] == False, 'fdr'] = merged_df['team_a_difficulty']
+        # Merge when was_home is False
+        away_merge = pd.merge(df_player[df_player['was_home'] == False], fixtures_df, how='left', left_on=['kickoff_time', 'opponent_team'], right_on=['kickoff_time', 'team_h'])
+
+        # Combine the results
+        merged_df = pd.concat([home_merge, away_merge])
+
+        merged_df = merged_df.sort_values(by='GW')
+
+        # Get the FDR for each game, note that the loop is the way I had to do it to make it work I am not really sure why 
+        fdr = [] 
+        for idx, row in merged_df.iterrows():
+            if row["was_home"] == True:
+                fdr.append(row["team_h_difficulty"])
+            else:
+                fdr.append(row["team_a_difficulty"])
+        
+        merged_df["fdr"] = fdr
 
         return merged_df
 

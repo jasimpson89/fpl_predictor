@@ -70,6 +70,10 @@ def main():
             dcc.Graph(
                 id=f"{player.name}_percentage_difference",
                 figure=px.line(player.df_player, x="GW", y="xg_percentage_difference", title=f"{player.name} - Percentage Difference between Expected Goals and Goals Scored", labels={"percentage_difference": "Percentage Difference"})
+            ),
+            dcc.Graph(
+                id=f"{player.name}_fdr_vs_form",
+                figure=px.line(player.df_player_fixtures, x="GW", y=["fdr","rolling_form"], title=f"{player.name} - FDR vs Form", labels={"value": "Value", "variable": "Metric"})
             )
             ])
         ]) for player in players.values()

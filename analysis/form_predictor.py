@@ -24,3 +24,4 @@ def test_bernoulli_predictor(df_player, player_name):
     fig = px.histogram(df_result, x="GW", color="Prediction", barmode="group", title=str(player_name) + " Bernoulli Predictor Distribution")
     fig.show()
 
+€
