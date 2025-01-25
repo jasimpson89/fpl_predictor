@@ -46,11 +46,14 @@ class player:
         self.df_player["xg_percentage_difference"] = ((self.df_player["goals_scored"] - self.df_player["expected_goals"]))
 
 
+
+
     def calc_player_form(self):
         # calculate the form of a player, but as rolling average from df_player
         avg = self.df_player['total_points'].rolling(window=5, min_periods=5).mean()
         self.df_player.loc[:,'rolling_form'] = avg
         self.df_player.loc[self.df_player['GW'] < 5, 'rolling_form'] = np.nan
+        
         return self.df_player
        
     def get_player_data(self):

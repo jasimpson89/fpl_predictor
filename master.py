@@ -7,6 +7,8 @@ import dash
 from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output
+import numpy as np
+from scipy.integrate import simps
 import analysis.form_predictor as form_predictor
 def main():
     # g = git.cmd.Git('/data_fpl')
@@ -32,6 +34,7 @@ def main():
     player_first_names = ["Mohamed", "Erling", "Cole"]
     player_second_names = ["Salah", "Haaland", "Palmer"]
 
+
     colors = ["red", "blue", "green"]
 
     players = {} # dictionary of players
@@ -44,6 +47,12 @@ def main():
                                                            path_2023, path_2023_gw, path_2023_player_raw, path_2023_fixtures)
 
         players[player_.name] = player_
+        form_predictor.main(player_.df_player_fixtures)
+
+        x = player_.df_player['GW']
+        y = np.abs(player_.df_player['xg_percentage_difference'])
+        area_under_curve = simps(y, x)
+                
 
         print(player_.name)
         # print(player_.df_player["rolling_form"])
@@ -72,9 +81,25 @@ def main():
                 figure=px.line(player.df_player, x="GW", y="xg_percentage_difference", title=f"{player.name} - Percentage Difference between Expected Goals and Goals Scored", labels={"percentage_difference": "Percentage Difference"})
             ),
             dcc.Graph(
-                id=f"{player.name}_fdr_vs_form",
-                figure=px.line(player.df_player_fixtures, x="GW", y=["fdr","rolling_form"], title=f"{player.name} - FDR vs Form", labels={"value": "Value", "variable": "Metric"})
+                id=f"{player.name}_fdr",
+                figure=px.line(player.df_player_fixtures, x="GW", y="fdr", title=f"{player.name} - FDR", labels={"fdr": "FDR"})
+            ),
+            dcc.Graph(
+                id=f"{player.name} total_points per game week",
+                figure=px.line(player.df_player_fixtures, x="GW", y="total_points", title=f"{player.name} - Rolling Form", labels={"rolling_form": "Rolling Form"})
+            ),
+            dcc.Graph(
+                id=f"{player.name}_fdr_vs_total_points",
+                figure=px.scatter(player.df_player_fixtures, x="fdr", y="total_points", title=f"{player.name} - FDR vs Total Points", labels={"fdr": "FDR", "total_points": "Total Points"}, color="was_home").add_trace(
+                    px.line(player.df_player_fixtures, x="fdr", y="total_points_pred").data[0]
+                )
             )
+            ]),
+            html.Div([
+                html.H4("Correlation Coefficient between FDR and Total Points"),
+                html.P(f"{player.df_player_fixtures['fdr'].corr(player.df_player_fixtures['total_points']):.2f}"),
+                html.H4("Area under goal-XG curve"),
+                html.P(f"Area under goal-XG curve: {area_under_curve:.2f}")
             ])
         ]) for player in players.values()
         ])
